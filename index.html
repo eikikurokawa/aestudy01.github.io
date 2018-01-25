@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>mock_ochahama_04</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script  src="js/dat.gui.min.js"></script>
+  <script  src="js/bodymovin.js"></script>
+
+  <style media="screen">
+    .dg.ac{
+      z-index: 9999;
+    }
+    #motion-container{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+    }
+    #wrapper{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <div id="container"></div> -->
+  <div id="motion-container"></div>
+  <script type="text/javascript">
+    let animData = {
+            wrapper: document.getElementById('motion-container'),
+            animType: 'svg',
+            loop: true,
+            prerender: true,
+            autoplay: true,
+            path: 'js/aestudy_sns.json'
+        };
+    setTimeout(function(){
+      let anim = bodymovin.loadAnimation(animData);
+    },100);
+  </script>
+<!-- <script id="vertexShader" type="x-shader/x-vertex">
+  void main() {
+    gl_Position = vec4(position, 1.0);
+  }
+</script>
+
+<script id="fragmentShader" type="x-shader/x-fragment">
+
+  uniform vec2 iResolution; //解像度(px数)取得
+  uniform float iGlobalTime; //時間取得
+  uniform float addRed; //足す赤の量
+  uniform float addGreen; //足す緑の量 今回は基本1.0
+  uniform float addBlue; //足す青の量
+  uniform float Saturation; //彩度
+  uniform float BrightnessValue; //明度
+
+
+  uniform float hsv2rgbValue01; //
+  uniform float hsv2rgbValue02; //
+  uniform float hsv2rgbValue03; //
+  uniform float hsv2rgbValue04; //
+
+
+  uniform float addNoise; //ノイズ適用量
+  uniform float NoiseSpeed01; //ノイズ適用量
+  uniform float NoiseSpeed02; //ノイズ適用量
+
+
+
+  // HSV を RGBに変換する関数 from↓
+  // http://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl
+  vec3 hsv2rgb(vec3 c)
+  {
+      vec4 K = vec4(hsv2rgbValue01, 2.0 / hsv2rgbValue02, 1.0 / hsv2rgbValue03, hsv2rgbValue04);
+      vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+      return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+  }
+
+
+  // ノイズを生成する関数 from↓
+  // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+  vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
+  float snoise(vec2 v){
+      const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                          -0.577350269189626, 0.024390243902439);
+      vec2 i  = floor(v + dot(v, C.yy) );
+      vec2 x0 = v -   i + dot(i, C.xx);
+      vec2 i1;
+      i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+      vec4 x12 = x0.xyxy + C.xxzz;
+      x12.xy -= i1;
+      i = mod(i, 289.0);
+      vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+                       + i.x + vec3(0.0, i1.x, 1.0 ));
+      vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+                              dot(x12.zw,x12.zw)), 0.0);
+      m = m*m ;
+      m = m*m ;
+      vec3 x = 2.0 * fract(p * C.www) - 1.0;
+      vec3 h = abs(x) - 0.5;
+      vec3 ox = floor(x + 0.5);
+      vec3 a0 = x - ox;
+      m *= 1.79284291400159 - (0.85373472095314) * ( a0*a0 + h*h );
+      vec3 g;
+      g.x  = a0.x  * x0.x  + h.x  * x0.y;
+      g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+      return addNoise * dot(m, g);
+  }
+// ノイズを生成する関数 from↓
+  void main(void)
+  {
+		vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    float xnoise = snoise(vec2(uv.x, iGlobalTime / NoiseSpeed01 + 10000.0));
+    float ynoise = snoise(vec2(uv.y, iGlobalTime / NoiseSpeed02 + 500.0));
+    vec2 t = vec2(xnoise, ynoise);
+    float s1 = snoise(uv + t / 2.0 + snoise(uv + snoise(uv + t/3.0) / 5.0));
+    float s2 = snoise(uv + snoise(uv + s1) / 7.0);
+    vec3 hsv = vec3(s1, Saturation, BrightnessValue - s2);
+    vec3 rgb = hsv2rgb(hsv);
+		gl_FragColor = vec4(rgb, 1.0);
+    gl_FragColor += vec4(addRed,addGreen,addBlue, 1.0);
+	}
+</script> -->
+<script type="text/v-shader" id="v-shader">
+    void main(void) {
+        gl_Position = vec4(position, 1.);
+    }
+</script>
+
+<script type="text/f-shader" id="f-shader">
+    precision mediump float;
+
+    // 高ければ高いほど精度が高い
+    #define OCTAVES 6
+
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    float random(in vec2 st) {
+        return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+    }
+
+    // Based on Morgan McGuire @morgan3d
+    // https://www.shadertoy.com/view/4dS3Wd
+    float noise(in vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+
+        float a = random(i);
+        float b = random(i + vec2(1., 0.));
+        float c = random(i + vec2(0., 1.));
+        float d = random(i + vec2(1., 1.));
+
+        vec2 u = f * f * (3. - 2. * f);
+
+        return mix(a, b, u.x) + (c - a) * u.y * (1. - u.x) + (d - b) * u.x * u.y;
+    }
+
+    float fbm(in vec2 st) {
+        float value = 0.;
+        float amplitud = .5;
+        float frequency = 0.;
+
+        for(int i=0; i<OCTAVES; i++) {
+            value += amplitud * noise(st);
+            st *= 2.;
+            amplitud *= .5;
+        }
+        return value;
+    }
+
+    float pattern(in vec2 st) {
+        vec2 q = vec2(
+            fbm(st + vec2(0.)),
+            fbm(st + vec2(5.2 - u_time * 2. / 30000., 1.3 - u_time * 2. / 10000.))
+        );
+        vec2 r = vec2(
+            fbm(st + 4. * q + vec2(1.7 + u_time * 2. / 40000., 9.2 + u_time * 2. / 20000.)),
+            fbm(st + 4. * q + vec2(8.3 + u_time * 2. / 15000., 2.8 + u_time * 2. / 25000.))
+        );
+        return fbm(st + 4. * r + u_time / 10000.);
+    }
+
+    void main(void) {
+        gl_FragColor = vec4(0.);
+
+        vec2 st = gl_FragCoord.xy / u_resolution.xy;
+        st.x *= u_resolution.x / u_resolution.y;
+
+        vec3 color = vec3(.0, .1, .19);
+        // 高ければ高いほどちらばる
+        color += pattern(st * 8.);
+
+        gl_FragColor = vec4(color - 0., 1.);
+    }
+</script>
+
+<div id="wrapper"></div>
+<script  src="js/three.min.js"></script>
+<script  src="js/index_02.js"></script>
+
+</body>
+</html>
